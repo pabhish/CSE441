@@ -1,0 +1,3 @@
+find -iname [pattern]
+find -iname *.sh
+find -iname *.txt
