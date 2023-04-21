@@ -1,0 +1,29 @@
+- hosts: production
+  become: yes
+  tasks:
+    - name: Update code from Git repository
+      git:
+        repo: 'https://github.com/myorg/myapp.git'
+        dest: '/opt/myapp'
+        version: release
+      register: git_output
+
+    - name: Build and deploy Docker container
+      docker_container:
+        name: myapp
+        image: myorg/myapp:latest
+        state: reloaded
+        pull: yes
+        published_ports:
+          - "80:80"
+        restart_policy: always
+        env:
+          SECRET_KEY: "{{ lookup('env','SECRET_KEY') }}"
+          DATABASE_URL: "{{ lookup('env','DATABASE_URL') }}"
+        volumes:
+          - '/opt/myapp:/app'
+
+    - name: Run database migrations
+      docker_container:
+        name: myapp
+        command: "python manage.py migrate"
