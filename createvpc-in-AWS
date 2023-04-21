@@ -1,0 +1,21 @@
+Open the AWS Management Console and navigate to the VPC service.
+
+Click on "Create VPC" to begin the VPC creation wizard.
+
+Enter a name for your VPC, and specify the IPv4 CIDR block that you want to use. 
+This is the range of IP addresses that your VPC will use. For example, 
+you could use the CIDR block 10.0.0.0/16 to create a VPC with 65,536 private IPv4 addresses.
+
+Choose whether you want to enable IPv6 for your VPC. 
+If you choose to enable IPv6, you will need to specify an IPv6 CIDR block as well.
+
+Choose the VPC's tenancy.
+By default, VPCs are created with the default tenancy, 
+which means that the instances that you launch in the VPC will be shared with other AWS customers. 
+If you want to launch instances with dedicated hardware, you can choose the "Dedicated" tenancy option.
+
+Click "Create" to create your VPC. 
+Once the VPC is created, you will be redirected to the VPC dashboard.
+
+Now that your VPC is created, you can create subnets,
+route tables, security groups, and other resources within the VPC to define the network topology and security rules.
