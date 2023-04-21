@@ -1,0 +1,63 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Example CloudFormation template
+
+Resources:
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0c94855ba95c71c99
+      InstanceType: t2.micro
+      KeyName: my-keypair
+      SecurityGroupIds:
+        - sg-0123456789abcdef
+      SubnetId: subnet-0123456789abcdef
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          echo "Hello, World!" > /var/www/html/index.html
+      Tags:
+        - Key: Name
+          Value: MyEC2Instance
+
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-s3-bucket
+      Tags:
+        - Key: Name
+          Value: MyS3Bucket
+
+  MyIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: MyS3AccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                Resource: !Sub arn:aws:s3:::my-s3-bucket/*
+
+Outputs:
+  MyEC2InstancePublicIp:
+    Description: The public IP address of the EC2 instance
+    Value: !GetAtt MyEC2Instance.PublicIp
+
+  MyS3BucketName:
+    Description: The name of the S3 bucket
+    Value: !Ref MyS3Bucket
+
+  MyIAMRoleArn:
+    Description: The ARN of the IAM role
+    Value: !GetAtt MyIAMRole.Arn
