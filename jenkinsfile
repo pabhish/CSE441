@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                sh 'docker build -t myapp .'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'docker run myapp python test.py'
+            }
+        }
+        stage('Deploy Staging') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh 'kubectl apply -f kubernetes/staging.yaml'
+            }
+        }
+        stage('Deploy Production') {
+            when {
+                branch 'release'
+            }
+            steps {
+                sh 'ansible-playbook ansible/deploy.yml'
+            }
+        }
+    }
+}
+
