@@ -1,0 +1,39 @@
+name: Trivy CSPM Scan
+
+on:
+  pull_request:
+    branches:
+    - "*"
+
+env:
+  DOCKER_IMAGE: "accuknox/bootstrap:testimage"
+  DOCKERFILE_CONTEXT: "Dockerfile"
+  CSPM_URL: cspm.demo.accuknox.com
+  CSPM_TOKEN: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjg4NzMwMzkwLCJqdGkiOiJjODQzMTRhNWEyYmQ0NzY2YjU5MWFmMDc2ZjBhNDA5ZSIsImlzcyI6ImNzcG0uZGVtby5hY2N1a25veC5jb20ifQ.F1YVYl5MSurrjCj1zx2wucyld639M4hdMmWZST7FRx8NH8nVqBA4oF7G-fdNwwAUiL8aflofyrhWo1PgAMHkF4O2OgG3IbgjZbiOeZVJ2BmMq_FMXBu0m_eY9-kCLkVM_iBsGc14CjQxM8xCXxtQS1Wtc67uVFeFzMch3s0mTHI_fvqCqZYMy7qHfSBVOBq8JnJ3ssIos_8BpapgKejysJjEvXA7F8qc9U5GeNfhqQ9IqMfoHW6w4bqk8770i4oGnJ_wZXbYY3RvKqe1BoSmue4-2-UPdEiZbA3IhK4WkUydrhFzDS2ls4A4Jl0sB1O8CmVKuEsrJfCtcCwElrmUQQ"
+  TENANT_ID: "167"
+
+jobs:
+  accuknox-cicd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Docker Build
+        run: |
+          docker build -t ${{ env.DOCKER_IMAGE }} -f ${{ env.DOCKERFILE_CONTEXT }} .
+
+      - name: Download Trivy Vulnerability Scanner
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Run Trivy Vulnerability Scanner
+        run: |
+          trivy image -f json ${{ env.DOCKER_IMAGE }} -o results.json
+
+      - name: Print Trivy Results
+        run: cat results.json
+
+      - name: Push report to CSPM panel
+        run: |
+          curl --location --request POST 'https://${{env.CSPM_URL}}/api/v1/artifact/?tenant_id=${{ env.TENANT_ID }}&data_type=TR&save_to_s3=false' --header 'Authorization: Bearer ${{ env.CSPM_TOKEN }}' --form 'file=@"./results.json"'
